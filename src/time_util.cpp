@@ -31,8 +31,8 @@
   #include <unistd.h>
 #endif
 
-#include "time_util.h"		/* time utilities */
-#include "fasttime.h"           /* defines fasttime type */
+#include "helper_funcs/time_util.h"		/* time utilities */
+#include "helper_funcs/fasttime.h"           /* defines fasttime type */
 
 /* variables used for controlling time */
 #define ROV_TIME_MODE_SYSTEM 0  /* Normal time, use O/S time */

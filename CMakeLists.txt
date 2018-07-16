@@ -27,7 +27,7 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
 #add_definitions("-std=c++0x -Wall -Werror")
 add_definitions("-std=c++0x -Wall")
 
-add_library(${PROJECT_NAME} src/log.cpp src/time_util.cpp)
+add_library(${PROJECT_NAME} src/log.cpp src/time_util.cpp src/fasttime.cpp)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}

@@ -41,6 +41,10 @@ extern void   log_one_hertz_update(void);
 #define LOG_FID_MST_FORMAT           1
 #define LOG_FID_MST_BINARY_FORMAT    2
 
+#define LOG_FID_KVH_SUFFIX          "KVH"
+#define LOG_FID_MST_SUFFIX          "MST"
+#define LOG_FID_MST_BINARY_SUFFIX   "BSM"
+
 // extra junk
 #define LOG_FID_CSV_FORMAT           4
 #define LOG_FID_IMAGE_FORMAT         5

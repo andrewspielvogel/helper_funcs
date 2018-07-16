@@ -28,9 +28,9 @@
 // #include "jasontalk.h"		/* jasontalk protocol and structures */
 // #include "dvlnav.h"
 
-#include "log.h"      	        /* log utils */
-#include "time_util.h"		/* time utils */
-#include "stderr.h"		/* stderr print util */
+#include "helper_funcs/log.h"      	        /* log utils */
+#include "helper_funcs/time_util.h"		/* time utils */
+#include "helper_funcs/stderr.h"		/* stderr print util */
 
 // TCriticalSection * LogCritSec = NULL;
 
@@ -49,16 +49,16 @@ typedef struct {
 
 // static logging_t log = {PTHREAD_MUTEX_INITIALIZER,1};
 
-static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) "KVH"},
-						 {1, (char *) "MST"},
-						 {1, (char *) "BSM"},
+static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) LOG_FID_KVH_SUFFIX},
+						 {1, (char *) LOG_FID_MST_SUFFIX},
+						 {1, (char *) LOG_FID_MST_BINARY_SUFFIX},
 						 {0, NULL}
 };
 
 // for logging directory use absolute path from root dir, do not use ~
-static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiels/log",
-							   (char *) "/home/spiels/log",
-							   (char *) "/home/spiels/log",
+static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiels/log/kvh",
+							   (char *) "/home/spiels/log/microstrain",
+							   (char *) "/home/spiels/log/microstrain",
 							   NULL};
 
 char * PNS_LOG_STRING[65535];
