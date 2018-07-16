@@ -20,7 +20,7 @@
 // ----------------------------------------------------------------------
 // DEBUG FLAG:  Uncomment this and recompile to get verbosr debugging
 // ----------------------------------------------------------------------
-// #define DEBUG_LOGGING
+#define DEBUG_LOGGING
 // ----------------------------------------------------------------------
 extern int    log_this_now_dsl_format(int log_fid, char * record_name, char * record_data);
 extern int    log_this_now(int log_fid, char * string);
@@ -40,12 +40,12 @@ extern void   log_one_hertz_update(void);
 #define LOG_FID_KVH_FORMAT           0
 #define LOG_FID_MST_FORMAT           1
 #define LOG_FID_MST_BINARY_FORMAT    2
-static char CSV_SCIENCE_LABEL_STR[] = "Col 1 label, Col 2 label, ....";
 
 // extra junk
-#define LOG_FID_CSV_FORMAT           3
-#define LOG_FID_IMAGE_FORMAT         4
-#define LOG_FID_RDI_BINARY_FORMAT    5
+#define LOG_FID_CSV_FORMAT           4
+#define LOG_FID_IMAGE_FORMAT         5
+
+#define LOG_FID_RDI_BINARY_FORMAT    6
+
 
 #endif
-

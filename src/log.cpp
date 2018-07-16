@@ -3,8 +3,7 @@
    Logging thread for ROV control system
 
    Modification History:
-   DATE         AUTHO
-R  COMMENT
+   DATE         AUTHOR  COMMENT
    14-JUL-2000  LLW      Created and written.
    22-Apr-2001  LLW      Ported to WIN32 for DVLNAV
    13-Apr-2002  LLW      Modified to allow multiple log files open at once.
@@ -21,7 +20,6 @@ R  COMMENT
 #include <ctype.h>
 #include <sys/types.h>
 #include <time.h>
-#include <iostream>
 
 // #include <vcl/syncobjs.hpp>
 
@@ -30,9 +28,9 @@ R  COMMENT
 // #include "jasontalk.h"		/* jasontalk protocol and structures */
 // #include "dvlnav.h"
 
-#include "helper_funcs/log.h"      	        /* log utils */
-#include "helper_funcs/time_util.h"		/* time utils */
-#include "helper_funcs/stderr.h"		/* stderr print util */
+#include "log.h"      	        /* log utils */
+#include "time_util.h"		/* time utils */
+#include "stderr.h"		/* stderr print util */
 
 // TCriticalSection * LogCritSec = NULL;
 
@@ -53,10 +51,11 @@ typedef struct {
 
 static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) "KVH"},
 						 {1, (char *) "MST"},
-						 {1, (char *) "BMS"},
+						 {1, (char *) "BSM"},
 						 {0, NULL}
 };
 
+// for logging directory use absolute path from root dir, do not use ~
 static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiels/log",
 							   (char *) "/home/spiels/log",
 							   (char *) "/home/spiels/log",
@@ -64,6 +63,9 @@ static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiel
 
 char * PNS_LOG_STRING[65535];
 char * PAS_LOG_STRING[65535];
+
+char  CSV_SCIENCE_LABEL_STR[]  = "Col 1 label, Col 2 label, ....";
+
 
 /* ---------------------------------------------------------------------- */
 int log_bytes_per_sec(void)
@@ -241,12 +243,12 @@ static int log_open_log_file(int log_fid)
 	  if(0== fclose(log[log_fid].log_file_pointer))
             {
               log[log_fid].log_file_pointer = NULL;
-	      stderr_printf("LOG: Closed system     log file %s OK.",log[log_fid].log_file_name);
+	      stderr_printf("LOG: Closed      log file %s OK.\n",log[log_fid].log_file_name);
             }
 	  else  // try again, one more time
            {
 
-	      stderr_printf("LOG: ERROR closing system     log file %s !!",log[log_fid].log_file_name);
+	      stderr_printf("LOG: ERROR closing      log file %s !!\n",log[log_fid].log_file_name);
 
               // try again to close the file
               if(log[log_fid].log_file_pointer != NULL)
@@ -270,20 +272,16 @@ static int log_open_log_file(int log_fid)
       if(log[log_fid].log_file_pointer == NULL)
         {
           if( log_fid == LOG_FID_RDI_BINARY_FORMAT)
-	    {
-	      log[log_fid].log_file_pointer = fopen(filename,"ab");
-	    }
+            log[log_fid].log_file_pointer = fopen(filename,"ab");
           else
-	    {
-            log[log_fid].log_file_pointer = fopen(filename,"at");
-	    }
+            log[log_fid].log_file_pointer = fopen(filename,"a");
         }
 
       /* check results of fopen operation */
       if(log[log_fid].log_file_pointer == NULL)
 	{
 	  log[log_fid].log_flag = 0;
-	  // stderr_printf("ERROR: Log file %s failed to open.",log[log_fid].log_file_name);
+	  stderr_printf("ERROR: Log file %s failed to open.\n",log[log_fid].log_file_name);
 
 	  strcpy(log[log_fid].log_file_name, "ERROR: ");
 	  strcat(log[log_fid].log_file_name, filename);
@@ -293,7 +291,7 @@ static int log_open_log_file(int log_fid)
       else
 	{
 	  strcpy(log[log_fid].log_file_name, filename);
-	  stderr_printf("LOG: Opened system     log file %s OK.\n",log[log_fid].log_file_name);
+	  stderr_printf("LOG: Opened      log file %s OK.\n",log[log_fid].log_file_name);
 
 	  // if we have opened a new spreadsheet file, log column labels
 	  if( log_fid == LOG_FID_CSV_FORMAT)

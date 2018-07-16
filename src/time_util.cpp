@@ -8,6 +8,11 @@
    22-Apr-2001  LLW     Modified for unix or win32 compile
    06-Jan-2004  LLW     Corrected several bugs which caused problems
                         when PC clock was not set to GMT
+   21-Jan-2005  SCM     Added support for unix to renav functions
+                        Also added added rov unique functions as well
+   11-Jun-2008  LLW     Fixed numerous nasties in 2005 unix version
+   2008-08-13    mvj    Fixed non-threadsafe use of gmtime.
+
 ---------------------------------------------------------------------- */
 #include <stdio.h>
 #include <math.h>
@@ -18,19 +23,20 @@
   #include <time.h>
   #include <sys\timeb.h>
   #include <dos.h>
-
 #else
   // unix headers
   #include <time.h>
   #include <sys/time.h>
+  #include <sys/timeb.h>
   #include <unistd.h>
 #endif
 
-#include "helper_funcs/time_util.h"		/* time utilities */
+#include "time_util.h"		/* time utilities */
+#include "fasttime.h"           /* defines fasttime type */
 
 /* variables used for controlling time */
-// #define ROV_TIME_MODE_SYSTEM 0  /* Normal time, use O/S time */
-// #define ROV_TIME_MODE_RENAV  1  /* fake time, use atrificial time */
+#define ROV_TIME_MODE_SYSTEM 0  /* Normal time, use O/S time */
+#define ROV_TIME_MODE_RENAV  1  /* fake time, use atrificial time */
 
 static int ROV_TIME_MODE = ROV_TIME_MODE_NORMAL;
 static double  renav_time = {0.0};  /* seconds since 1970 */
@@ -40,13 +46,13 @@ static double  renav_time = {0.0};  /* seconds since 1970 */
    Modification History:
    DATE         AUTHOR  COMMENT
    11-Jan-2004  LLW      Created and written.
-
+   21-Jan-2005  SCM      Added function to fit current model
 ---------------------------------------------------------------------- */
-int rov_time_mode_set( int mode)
+void rov_time_mode_set(int mode)
 {
-  ROV_TIME_MODE = mode;
 
-  return ROV_TIME_MODE;
+  ROV_TIME_MODE = mode;
+  
 }
 
 /* ----------------------------------------------------------------------
@@ -58,7 +64,23 @@ int rov_time_mode_set( int mode)
 ---------------------------------------------------------------------- */
 int rov_time_mode_get( void )
 {
+
   return ROV_TIME_MODE;
+
+}
+
+/* ----------------------------------------------------------------------
+
+   Modification History:
+   DATE         AUTHOR  COMMENT
+   11-Jan-2004  LLW      Created and written.
+
+---------------------------------------------------------------------- */
+void rov_time_mode_get(int * mode )
+{
+
+  mode = &ROV_TIME_MODE;
+
 }
 
 
@@ -71,18 +93,22 @@ int rov_time_mode_get( void )
 ---------------------------------------------------------------------- */
 void rov_time_set( double secs_since_1970 )
 {
+
   renav_time = secs_since_1970;
+
 }
 
 /* ----------------------------------------------------------------------
 
    Modification History:
    DATE         AUTHOR  COMMENT
-   11-Jan-2004  LLW      Created and written.
-
+   11-Jan-2004  LLW     Created and written.
+   19-JUL-2005  SCM     added unix support
+   11-Jun-2008  LLW     Deleted redundant code from 2005 unix version
 ---------------------------------------------------------------------- */
 void rov_time_set( int year, int month, int day, int hour, int min, double sec )
 {
+
   struct tm t;
   time_t    tt;
 
@@ -92,7 +118,7 @@ void rov_time_set( int year, int month, int day, int hour, int min, double sec )
   t.tm_mday = day;
   t.tm_hour = hour;
   t.tm_min  = min;
-  t.tm_sec  = sec;
+  t.tm_sec   = (int) floor(sec);
   t.tm_isdst = 0;
 
   // call mktime to compute time_t time integer seconds since 1970
@@ -103,15 +129,52 @@ void rov_time_set( int year, int month, int day, int hour, int min, double sec )
 
 }
 
+
+
 /* ----------------------------------------------------------------------
 
    Modification History:
    DATE         AUTHOR  COMMENT
-   11-Jan-2004  LLW      Created and written.
+   11-Jan-2004  LLW     Created and written.
+   11-Jun-2008  LLW     Check sscanf conversion.  
+                        Return success status: 0 if success, -1 if fail
+---------------------------------------------------------------------- */
+int rov_time_set(char * string)
+{
 
+  //time_t  tt;
+  //struct tm t;
+  int month;
+  int day;
+  int year;
+  int hour;
+  int min;
+  double sec;
+  int status;
+
+  status = sscanf(string, "%d/%d/%d %d:%d:%lf", &month, &day, &year, &hour, &min, &sec);
+
+  if ( status == 6)
+    {
+      rov_time_set( year, month, day, hour, min, sec);
+      return(0);
+    }
+  else
+    return(-1);
+ 
+}
+
+/* ----------------------------------------------------------------------
+
+   Modification History:
+   DATE         AUTHOR  COMMENT
+   11-Jan-2004  LLW     Created and written.
+   19-JUL-2005  SCM     added unix support
+   11-Jun-2008  LLW     Deleted redundant code from 2005 unix version
 ---------------------------------------------------------------------- */
 rov_time_t rov_time_compute( int year, int month, int day, int hour, int min, double sec )
 {
+
   struct tm t;
   time_t    tt;
   rov_time_t rov_time;
@@ -122,7 +185,7 @@ rov_time_t rov_time_compute( int year, int month, int day, int hour, int min, do
   t.tm_mday = day;
   t.tm_hour = hour;
   t.tm_min  = min;
-  t.tm_sec  = sec;
+  t.tm_sec  = (int) floor(sec);
   t.tm_isdst = 0;
 
   // call mktime to compute time_t time integer seconds since 1970
@@ -130,7 +193,7 @@ rov_time_t rov_time_compute( int year, int month, int day, int hour, int min, do
 
   // compute sum of integer and fractional seconds since 1970
   rov_time = ((double) tt) +  fmod( sec, 1.0);
-
+  
   return rov_time;
 
 }
@@ -228,47 +291,16 @@ double rov_diff_time(rov_time_t t1, rov_time_t t0)
    22-Apr-2001  LLW     Modified for unix or win32 compile
    06-Jan-2004  LLW     Corrected bugs which caused problem if
                         WIN32 PC clock is not set to GMT time zone
+   11-Jun-2008  LLW     Removed needless OS specific code
 
 ---------------------------------------------------------------------- */
 rov_time_t rov_get_time(void)
 {
-
-// ---------------------------------------------------------------------
-// WIN32 code
-// ---------------------------------------------------------------------
-#ifdef __WIN32__
-
    rov_time_struct_t t;
 
    t = rov_get_time_struct();
 
    return t.sec_rov_time;
-
-
-// ---------------------------------------------------------------------
-// UNIX code
-// ---------------------------------------------------------------------
-#else
-  struct timeval  tv;
-  struct timezone tz;
-  double t;
-
-  time_t  current_time;
-  struct tm  *tm;
-
-  current_time = time(NULL);
-  tm = gmtime(&current_time);
-
-  gettimeofday(&tv, &tz);
-
-  t = (((double)tv.tv_sec) + (((double)tv.tv_usec) *0.000001));
-
-  // printf("TIME:  time=%ld sec, %ld usec, %f\n",tv.tv_sec, tv.tv_usec, t);
-
-  return t;
-
-#endif
-
 }
 
 /* ----------------------------------------------------------------------
@@ -281,47 +313,17 @@ rov_time_t rov_get_time(void)
    23-JUL-2000  LLW     Created and written.
    22-Apr-2001  LLW     Modified for unix or win32 compile
    06-Jan-2004  LLW     Corrected bugs which caused problem if
-                        WIN32 PC clock is not set to GMT time zone
-
+                        WIN32 PC clock is not set to GMT time zon
+   07-JUL-2005  SCM     added support for renav time SCM 7/18/05
+   11-Jun-2008  LLW     Removed needless OS specific code
 ---------------------------------------------------------------------- */
 rov_time_t rov_get_time(int time_mode)
 {
-
-// ---------------------------------------------------------------------
-// WIN32 code
-// ---------------------------------------------------------------------
-#ifdef __WIN32__
-
    rov_time_struct_t t;
 
    t = rov_get_time_struct(time_mode);
 
    return t.sec_rov_time;
-
-
-// ---------------------------------------------------------------------
-// UNIX code
-// ---------------------------------------------------------------------
-#else
-  struct timeval  tv;
-  struct timezone tz;
-  double t;
-
-  time_t  current_time;
-  struct tm  *tm;
-
-  current_time = time(NULL);
-  tm = gmtime(&current_time);
-
-  gettimeofday(&tv, &tz);
-
-  t = (((double)tv.tv_sec) + (((double)tv.tv_usec) *0.000001));
-
-  // printf("TIME:  time=%ld sec, %ld usec, %f\n",tv.tv_sec, tv.tv_usec, t);
-
-  return t;
-
-#endif
 
 }
 
@@ -335,27 +337,28 @@ rov_time_t rov_get_time(int time_mode)
    DATE         WHO             WHAT
    -----------  --------------  ----------------------------
    14 APR 1999  Louis Whitcomb  Created and Written
-   22-Apr-2001  LLW     Modified for unix or win32 compile
-   09 JAN 2004 LLW Modified to use time_util.cpp
+   22-Apr-2001  LLW             Modified for unix or win32 compile
+   09 JAN 2004 LLW              Modified to use time_util.cpp
+   18-JUL-2005 SCM              added support for renav time SCM 7/18/05
+   11-Jun-2008  LLW             Removed needless OS specific code
+   2008-06-19    mvj            Overloaded to get specific time.
+   2018/02/16 21:22:29 LLW log time to us not ms 
+   2018-07-16 LLW  reverted to ms time stamps, above edit was nfg
 
    ---------------------------------------------------------------------- */
-int rov_sprintf_dsl_time_string(char * str)
+int rov_sprintf_dsl_time_string(char * str, int time_mode)
 {
-
-// ---------------------------------------------------------------------
-// WIN32 code
-// ---------------------------------------------------------------------
-#ifdef __WIN32__
 
    // 09 JAN 2004 LLW Modified to use time_util.cpp
    rov_time_struct_t     now;
-
    int    num_chars;
 
    // 09 JAN 2004 LLW Modified to use time_util.cpp
-   now = rov_get_time_struct();
+   now = rov_get_time_struct(time_mode);
 
-
+   
+   // 2018/02/16 21:22:29 LLW log time to us not ms 
+   //   2018-07-16 LLW  reverted to ms time stamps, edit was nfg
    num_chars = sprintf(str,"%02d/%02d/%02d %02d:%02d:%02d.%03d",
         now.year,
         now.month,
@@ -368,53 +371,12 @@ int rov_sprintf_dsl_time_string(char * str)
    num_chars = strlen(str);
 
    return num_chars;
-
-// ---------------------------------------------------------------------
-// UNIX code
-// ---------------------------------------------------------------------
-#else
-
-   int    num_chars;
-
-   // for min, sec
-   double total_secs;
-   double secs_in_today;
-   // double day;
-   // double hour;
-   double min;
-   double sec;
-
-   // for date and hours
-   struct tm  *tm;
-   time_t current_time;
-
-   // read gettimeofday() clock and compute min, and
-   // sec with microsecond precision
-   total_secs = rov_get_time();
-   secs_in_today = fmod(total_secs,24.0*60.0*60.0);
-   // hour = secs_in_today/3600.0;
-   min  = fmod(secs_in_today/60.0,60.0);
-   sec  = fmod(secs_in_today,60.0);
-
-   // call time() and gmtime for hour and date
-   current_time = time(NULL);
-   tm = gmtime(&current_time);
-
-   num_chars = sprintf(str,"%02d/%02d/%02d %02d:%02d:%8f",
-		       (int) tm->tm_year%100,
-		       (int) tm->tm_mon+1,
-		       (int) tm->tm_mday,
-		       (int) tm->tm_hour,
-		       (int) min,
-		       sec);
-
-
-   return num_chars;
-
-#endif
-
 }
 
+int rov_sprintf_dsl_time_string(char * str)
+{
+  return(rov_sprintf_dsl_time_string(str, ROV_TIME_MODE));
+}
 
 
 /* ----------------------------------------------------------------------
@@ -428,130 +390,17 @@ int rov_sprintf_dsl_time_string(char * str)
    06 Jan 2004  LLW             Revised to compute time properly
                                 regardless of how the PC time zone
                                 is set under WIN32
+   11-Jun-2008  LLW             Removed needless OS specific code
    ---------------------------------------------------------------------- */
 rov_time_struct_t rov_get_time_struct(void)
 {
 
-// ---------------------------------------------------------------------
-// WIN32 code
-// ---------------------------------------------------------------------
-#ifdef __WIN32__
+   rov_time_struct_t  now;
 
+   // get time struct for current time mode
+   now = rov_get_time_struct(ROV_TIME_MODE);
 
-   double total_secs;
-   double secs_in_today;
-   //  double day;
-   double hour;
-   double min;
-   double sec;
-
-   // time_t        time_time;
-   struct tm     gmtime_time;
-   struct timeb  ftime_time;
-
-   // int tz, dl;
-   // tz = _timezone;
-   // dl = _daylight;
-
-   rov_time_struct_t t;
-
-   // get seconds since 1970
-   // if in RENAV mode, use fake clock
-   if (ROV_TIME_MODE == ROV_TIME_MODE_RENAV)
-     {
-       ftime_time.time      = floor(renav_time);
-       ftime_time.millitm   = (fmod(renav_time,1.0) * 1000.0);
-       ftime_time.timezone  =  0;
-       ftime_time.dstflag   =  0;
-     }
-   else // default is to read system time from O/S
-     {
-       // get integer and fractional seconds since 1970 with ftime()
-       ftime(&ftime_time);
-     }
-
-   // ------------------------------------------------------
-   // BAD method uses seperate calls for secs ans millisecs,
-   //     leavinf possibility of phase error
-   //get integer secs since 1970 GMT with time()
-   // time_time = time(NULL);
-   // convert integer secs to a ymdhms structure with gmtime()
-   // gmtime_time = *gmtime(&time_time);
-   // ------------------------------------------------------
-
-   // ------------------------------------------------------
-   // GOOD method compues gmtime struct from ftime resiult,
-   //      no chance of phase error
-   // convert integer secs to a ymdhms structure with gmtime()
-   gmtime_time = *gmtime(&ftime_time.time);
-   // ------------------------------------------------------
-
-   // assign results to data structures
-   t.year         = gmtime_time.tm_year + 1900;
-   t.month        = gmtime_time.tm_mon+1;
-   t.day          = gmtime_time.tm_mday;
-
-   t.hour         = gmtime_time.tm_hour;
-   t.min          = gmtime_time.tm_min;
-   t.sec_int      = gmtime_time.tm_sec;
-   t.msec_int     = ftime_time.millitm;
-   t.sec_double   = gmtime_time.tm_sec + (((double)ftime_time.millitm) / 1000.0);
-
-   t.sec_today    = t.sec_double +
-                    (60.0 * t.min) +
-                    (3600.0* t.hour);
-
-   t.sec_rov_time = ftime_time.time +  (((double)ftime_time.millitm) / 1000.0);
-
-   return t;
-
-
-   // ---------------------------------------------------------------------
-// UNIX code
-// ---------------------------------------------------------------------
-#else
-  struct timeval  tv;
-  struct timezone tz;
-  double t;
-
-  time_t  current_time;
-  struct tm  *tm;
-
-  current_time = time(NULL);
-  tm = gmtime(&current_time);
-
-  gettimeofday(&tv, &tz);
-
-  t = (((double)tv.tv_sec) + (((double)tv.tv_usec) *0.000001));
-
-  //printf("TIME:  time=%ld sec, %ld usec, %f\n",tv.tv_sec, tv.tv_usec, t);
-  //printf("TIME:  time=%ld/%ld/%ld:%ld:%ld:%ld, %f\n",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec, t);
-
-  rov_time_struct_t tt;
-
-
-     // assign results to data structures
-   tt.year         = tm->tm_year+1900;
-   tt.month        = tm->tm_mon+1;
-   tt.day          = tm->tm_mday;
-
-   tt.hour         = tm->tm_hour;
-   tt.min          = tm->tm_min;
-   tt.sec_int      = tm->tm_sec;
-   tt.msec_int     = tv.tv_usec/1000;
-   tt.sec_double   = tm->tm_sec + (((double)tv.tv_usec) / 1000000.0);
-
-   tt.sec_today    = tt.sec_double +
-                    (60.0 * tt.min) +
-                    (3600.0* tt.hour);
-
-   tt.sec_rov_time = t;
-
-   
-  return tt;
-
-     
-#endif
+   return(now);
 
 }
 
@@ -568,26 +417,17 @@ rov_time_struct_t rov_get_time_struct(void)
    06 Jan 2004  LLW             Revised to compute time properly
                                 regardless of how the PC time zone
                                 is set under WIN32
+   11 Jun 2008  LLW             Modified to function identically under win and linux
+   2008-08-13    mvj            Fixed thread unsafe use of gmtime in favor of
+                                using gmtime_r.  In fasttime mode realtime 
+				(not fasttime) was regularly stomped on.
+
    ---------------------------------------------------------------------- */
 rov_time_struct_t rov_get_time_struct(int time_mode)
 {
 
-// ---------------------------------------------------------------------
-// WIN32 code
-// ---------------------------------------------------------------------
-#ifdef __WIN32__
-
-
-   double total_secs;
-   double secs_in_today;
-   //  double day;
-   double hour;
-   double min;
-   double sec;
-
-   // time_t        time_time;
-   struct tm     gmtime_time;
    struct timeb  ftime_time;
+   struct tm     gmtime_time;
 
    // int tz, dl;
    // tz = _timezone;
@@ -597,10 +437,32 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
 
    // get seconds since 1970
    // if in RENAV mode, use fake clock
+   // 2008-06-17    mvj    Note: this can produce a jitter of 
+   //                      up to 1 ms due to truncation error in
+   //                      computing _both_ ftime_time.time and 
+   //                      ftime_time.millitm (consider when 
+   //                      renav_time = 2.99999...9999 (nominally 3.0).
+   //                      The fasttime data type has been added to
+   //                      avoid this. 
    if (time_mode == ROV_TIME_MODE_RENAV)
      {
-       ftime_time.time      = floor(renav_time);
-       ftime_time.millitm   = (fmod(renav_time,1.0) * 1000.0);
+       ftime_time.time      = (time_t) floor(renav_time);
+       ftime_time.millitm   = (unsigned short int) (fmod(renav_time,1.0) * 1000.0);
+       ftime_time.timezone  =  0;
+       ftime_time.dstflag   =  0;
+     }
+   // 2008-06-17    mvj    Added fasttime support.
+   // 2008-06-19    mvj    Modified to use functionalized fasttime API.
+   else if (time_mode == ROV_TIME_MODE_FASTTIME) 
+     {
+       fasttime_t ft, fts, ftms;
+       
+       ft = fasttime_get();
+       fts = FASTTIME_FT2S(ft);
+       ftms = FASTTIME_FT2MS(ft - FASTTIME_S2FT(fts));
+
+       ftime_time.time      =  (time_t) fts; 
+       ftime_time.millitm   =  (unsigned short int) ftms; 
        ftime_time.timezone  =  0;
        ftime_time.dstflag   =  0;
      }
@@ -623,7 +485,8 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
    // GOOD method compues gmtime struct from ftime resiult,
    //      no chance of phase error
    // convert integer secs to a ymdhms structure with gmtime()
-   gmtime_time = *gmtime(&ftime_time.time);
+   // 2008-Aug-13 mvj Fixed thread-unsafe use of gmtime with gmtime_r
+   gmtime_r(&ftime_time.time, &gmtime_time);
    // ------------------------------------------------------
 
    // assign results to data structures
@@ -645,50 +508,60 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
 
    return t;
 
-      // ---------------------------------------------------------------------
-// UNIX code
-// ---------------------------------------------------------------------
-#else
-  struct timeval  tv;
-  struct timezone tz;
-  double t;
-
-  time_t  current_time;
-  struct tm  *tm;
-
-  current_time = time(NULL);
-  tm = gmtime(&current_time);
-
-  gettimeofday(&tv, &tz);
-
-  t = (((double)tv.tv_sec) + (((double)tv.tv_usec) *0.000001));
-
-  //printf("TIME:  time=%ld sec, %ld usec, %f\n",tv.tv_sec, tv.tv_usec, t);
-  //printf("TIME:  time=%ld/%ld/%ld:%ld:%ld:%ld, %f\n",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec, t);
-
-  rov_time_struct_t tt;
+}
 
 
-     // assign results to data structures
-   tt.year         = tm->tm_year+1900;
-   tt.month        = tm->tm_mon+1;
-   tt.day          = tm->tm_mday;
 
-   tt.hour         = tm->tm_hour;
-   tt.min          = tm->tm_min;
-   tt.sec_int      = tm->tm_sec;
-   tt.msec_int     = tv.tv_usec/1000;
-   tt.sec_double   = tm->tm_sec + (((double)tv.tv_usec) / 1000000.0);
+/* ----------------------------------------------------------------------
 
-   tt.sec_today    = tt.sec_double +
-                    (60.0 * tt.min) +
-                    (3600.0* tt.hour);
+   sprintfs dsl data time string based on an input time in seconds
 
-   tt.sec_rov_time = t;
+   MODIFICATION HISTORY
+   DATE         WHO             WHAT
+   -----------  --------------  ----------------------------
+   11 Mar 2002  J Howland       created from the above function
+   07 JUL 2005  SCM             added from time_util the llw way
+   11 Jun 2008  LLW             Corrected bad code - complete rewrite
+                                Should not reference time mode.
+   2008-06-17    mvj            Some bad code left: references to 
+                                renav_time changed to total_sec.
+				Note, however, that converting from
+				double to integer time is subject to
+                                truncation error problems.
+   2008-08-13    mvj            Fixed thread-unsafe use of gmtime with
+                                gmtime_r.
 
-   
-  return tt;
-#endif
+   ---------------------------------------------------------------------- */
+int rov_convert_dsl_time_string (double total_secs, char *str)
+{
+
+  int           num_chars;
+  struct tm     gmtime_time;
+  struct timeb  ftime_time;
+  double        sec;
+
+  // setup ftime struct
+  ftime_time.time      = (time_t)         floor(total_secs);
+  ftime_time.millitm   = (unsigned short) (fmod(total_secs,1.0) * 1000.0);
+  ftime_time.timezone  =  0;
+  ftime_time.dstflag   =  0;
+
+  // convert to gmtime struct
+  // 2008-Aug-13 mvj Fixed use of thread-unsafe gmtime with gmtime_r
+  gmtime_r(&ftime_time.time, &gmtime_time);
+
+  sec = fmod (total_secs, 60.0);
+
+  num_chars = sprintf (str, "%04d/%02d/%02d %02d:%02d:%06.3f", 
+		       (int) gmtime_time.tm_year +1900, 
+		       (int) gmtime_time.tm_mon + 1, 
+		       (int) gmtime_time.tm_mday, 
+		       (int) gmtime_time.tm_hour, 
+		       (int) gmtime_time.tm_min, 
+		       sec);
+
+
+  return num_chars;
 
 }
 
