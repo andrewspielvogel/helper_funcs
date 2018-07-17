@@ -45,9 +45,9 @@ extern void   log_one_hertz_update(void);
 
 
 #define LOG_FID_KVH_SUFFIX          "KVH"
-#define LOG_FID_KVH_BINARY_SUFFIX   "KVH"
+#define LOG_FID_KVH_BINARY_SUFFIX   "BKVH"
 #define LOG_FID_MST_SUFFIX          "MST"
-#define LOG_FID_MST_BINARY_SUFFIX   "BSM"
+#define LOG_FID_MST_BINARY_SUFFIX   "BMS"
 #define LOG_FID_PHINS_SUFFIX        "INS"
 
 //extra junk
