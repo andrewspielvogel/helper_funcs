@@ -35,23 +35,23 @@ extern int    log_get_log_status(int log_fid);
 extern int    log_bytes_per_sec(void);
 extern void   log_one_hertz_update(void);
 
-#define LOG_MAX_NUM_LOG_FILES        4
+#define LOG_MAX_NUM_LOG_FILES        5
 
 #define LOG_FID_KVH_FORMAT           0
 #define LOG_FID_MST_FORMAT           1
 #define LOG_FID_MST_BINARY_FORMAT    2
 #define LOG_FID_PHINS_FORMAT         3
+#define LOG_FID_KVH_BINARY_FORMAT    4
+
 
 #define LOG_FID_KVH_SUFFIX          "KVH"
+#define LOG_FID_KVH_BINARY_SUFFIX   "KVH"
 #define LOG_FID_MST_SUFFIX          "MST"
 #define LOG_FID_MST_BINARY_SUFFIX   "BSM"
 #define LOG_FID_PHINS_SUFFIX        "INS"
 
-// extra junk
-#define LOG_FID_CSV_FORMAT           4
-#define LOG_FID_IMAGE_FORMAT         5
-
-#define LOG_FID_RDI_BINARY_FORMAT    6
-
+//extra junk
+#define LOG_FID_RDI_BINARY_FORMAT    5
+#define LOG_FID_CSV_FORMAT           6
 
 #endif
