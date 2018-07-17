@@ -50,19 +50,19 @@ typedef struct {
 // static logging_t log = {PTHREAD_MUTEX_INITIALIZER,1};
 
 static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) LOG_FID_KVH_SUFFIX},
-						 {1, (char *) LOG_FID_KVH_BINARY_SUFFIX},
 						 {1, (char *) LOG_FID_MST_SUFFIX},
 						 {1, (char *) LOG_FID_MST_BINARY_SUFFIX},
 						 {1, (char *) LOG_FID_PHINS_SUFFIX},
+						 {1, (char *) LOG_FID_KVH_BINARY_SUFFIX},
 						 {0, NULL}
 };
 
 // for logging directory use absolute path from root dir, do not use ~
 static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiels/log/kvh",
-							   (char *) "/home/spiels/log/kvh",
 							   (char *) "/home/spiels/log/microstrain",
 							   (char *) "/home/spiels/log/microstrain",
 							   (char *) "/home/spiels/log/phins",
+							   (char *) "/home/spiels/log/kvh",
 							   NULL};
 
 char * PNS_LOG_STRING[65535];
