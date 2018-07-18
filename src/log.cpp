@@ -10,7 +10,8 @@
    24 April 2002 LLW modified to close out fid 2 at midnight
    01 AUG 2002  LLW      Added check on fopen(), not clear why we need this.
                          Added second attempt to fclose if first fails.
-    02 JUN 2005 LLW  Added logging of all targets at top of new CSV file
+   02 JUN 2005 LLW  Added logging of all targets at top of new CSV file
+   2018-07-18 LLW Modified for standalone use without rov 
 
 ---------------------------------------------------------------------- */
 /* standard ansi C header files */
@@ -58,11 +59,22 @@ static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) LOG_FID_KVH_SUFFIX
 };
 
 // for logging directory use absolute path from root dir, do not use ~
-static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/home/spiels/log/kvh",
-							   (char *) "/home/spiels/log/microstrain",
-							   (char *) "/home/spiels/log/microstrain",
-							   (char *) "/home/spiels/log/phins",
-							   (char *) "/home/spiels/log/kvh",
+
+// 2018-07-18 LLW Changed log dir to /log
+//                create a log directory which every user can write to like this:
+//                sudo mkdir /log   
+//                sudo chown llw.llw /log   // change ownership
+//                chmod +rwx /log           // anyone can write to it
+//                mkdir /log/kvh
+//                mkdir /log/microstrain
+//                mkdir /log/phins
+
+
+static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/log/kvh",
+							   (char *) "/log/microstrain",
+							   (char *) "/log/microstrain",
+							   (char *) "/log/phins",
+							   (char *) "/log/kvh",
 							   NULL};
 
 char * PNS_LOG_STRING[65535];
