@@ -8,6 +8,9 @@
    22-Apr-2001  LLW     Modified for unix or win32 compile 
    22-JUL-2005  SCM     added renewed unix calls
    11-Jun-2008  LLW     Fixed numerous nasties in 2005 unix version
+   
+   2018-07-18   LLW     revised to extend precision of clock from ms to perhaps ns, OS dependent, for ROV_TIME_MODE_NORMAL 
+                        ROV_TIME_MODE_RENAV and ROV_TIME_MODE_FASTTIME are still 1ms resolution
 ---------------------------------------------------------------------- */
 #ifndef TIME_UTIL_INC
 #define TIME_UTIL_INC
@@ -27,11 +30,14 @@ typedef struct
   int day;
   int hour;
   int min;
-  int sec_int;
+  int sec_int;  // sec of minute
   int msec_int;
-  double sec_double;
-  double sec_today;
-  double sec_rov_time; /* unix time - time since midnight GMT beginning Jan 1, 1970 */
+  //  2018-07-18   LLW  revised to extend precision of clock from ms to perhaps ns, OS dependent 
+  long clock_gettime_sec_int;
+  long clock_gettime_nsec_int;  
+  double sec_double;   // 0.0 to 59.9999... seconds of the minute
+  double sec_today;    // 0.0 to 86,399.9999.. seconds of the day
+  double sec_rov_time; /* 0.0 to decimal seconds  unix time - time since midnight GMT beginning Jan 1, 1970 */
 } rov_time_struct_t;
 
 
