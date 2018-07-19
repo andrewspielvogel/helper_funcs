@@ -12,7 +12,8 @@
                         Also added added rov unique functions as well
    11-Jun-2008  LLW     Fixed numerous nasties in 2005 unix version
    2008-08-13    mvj    Fixed non-threadsafe use of gmtime.
-
+   2018-07-18   LLW     revised to extend precision of clock from ms to perhaps ns, OS dependent, for ROV_TIME_MODE_NORMAL 
+                        ROV_TIME_MODE_RENAV and ROV_TIME_MODE_FASTTIME are still 1ms resolution
 ---------------------------------------------------------------------- */
 #include <stdio.h>
 #include <math.h>
@@ -356,17 +357,33 @@ int rov_sprintf_dsl_time_string(char * str, int time_mode)
    // 09 JAN 2004 LLW Modified to use time_util.cpp
    now = rov_get_time_struct(time_mode);
 
-   
-   // 2018/02/16 21:22:29 LLW log time to us not ms 
-   //   2018-07-16 LLW  reverted to ms time stamps, edit was nfg
-   num_chars = sprintf(str,"%02d/%02d/%02d %02d:%02d:%02d.%03d",
-        now.year,
-        now.month,
-        now.day,
-        now.hour,
-        now.min,
-        now.sec_int,
-        now.msec_int);
+   if ((time_mode == ROV_TIME_MODE_RENAV) || (time_mode == ROV_TIME_MODE_FASTTIME))
+     // 2018-07-18 LLW old code uses ms resolution fractional seconds     
+     {
+
+       // 2018/02/16 21:22:29 LLW log time to us not ms 
+       // 2018-07-16 LLW  reverted to ms time stamps, 2018/02/16edit was nfg
+       num_chars = sprintf(str,"%02d/%02d/%02d %02d:%02d:%02d.%03d",
+			   now.year,
+			   now.month,
+			   now.day,
+			   now.hour,
+			   now.min,
+			   now.sec_int,
+			   now.msec_int);
+     }
+   else
+     // 2018-07-18 LLW new code uses ns resolution fractional seconds
+     {
+       num_chars = sprintf(str,"%02d/%02d/%02d %02d:%02d:%02d.%09ld",
+			   now.year,
+			   now.month,
+			   now.day,
+			   now.hour,
+			   now.min,
+			   now.sec_int,
+			   now.clock_gettime_nsec_int);       
+     }
 
    num_chars = strlen(str);
 
@@ -421,19 +438,52 @@ rov_time_struct_t rov_get_time_struct(void)
    2008-08-13    mvj            Fixed thread unsafe use of gmtime in favor of
                                 using gmtime_r.  In fasttime mode realtime 
 				(not fasttime) was regularly stomped on.
+    2018-07-18   LLW           revised to extend precision of clock from ms to perhaps ns, OS dependent 
 
    ---------------------------------------------------------------------- */
 rov_time_struct_t rov_get_time_struct(int time_mode)
 {
 
+  static int first_time = 1;
+
    struct timeb  ftime_time;
    struct tm     gmtime_time;
-
+   timespec clock_gettime_time;
    // int tz, dl;
    // tz = _timezone;
    // dl = _daylight;
 
    rov_time_struct_t t;
+
+   
+   // 2018-07-18 LLW print high-res clock info on first call
+   if( first_time == 1)
+     {
+       first_time = 0;
+
+       timespec res;
+       int status;
+
+       fprintf(stderr, "\nFILE %s compiled on %s %s\n",__FILE__,__TIME__,__DATE__); 
+
+       status = clock_getres(CLOCK_REALTIME, &res);
+       fprintf(stderr, "clock_getres(CLOCK_REALTIME,  &res) returned status = %d res.tv_sec=%ld res.tv_nsec=%ld, clock resolution=%g sec\n",
+	       status,
+	       res.tv_sec,
+	       res.tv_nsec,
+	       res.tv_sec + (1e-9*res.tv_nsec)	  
+	       );
+
+       // status = clock_getres(CLOCK_MONOTONIC, &res);
+       // fprintf(stderr, "clock_getres(CLOCK_MONOTONIC, &res) returned status = %d res.tv_sec=%ld res.tv_nsec=%ld, clock resolution=%g sec\n",	  
+       // 	       status,
+       // 	       res.tv_sec,
+       // 	       res.tv_nsec,
+       // 	       res.tv_sec + (1e-9*res.tv_nsec)	  
+       // 	       );
+       
+       
+     }
 
    // get seconds since 1970
    // if in RENAV mode, use fake clock
@@ -469,7 +519,21 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
    else // default is to read system time from O/S
      {
        // get integer and fractional seconds since 1970 with ftime()
-       ftime(&ftime_time);
+       
+       // 2018-07-18 LLW commented out ftime
+       //     ftime(&ftime_time);
+       // 2018-07-18 LLW added call to clock_gettime
+       clock_gettime(CLOCK_REALTIME, &clock_gettime_time);
+
+       // 2018-07-18 LLW assign integer seconds
+       ftime_time.time      =  clock_gettime_time.tv_sec;
+       // 2018-07-18 LLW compute integer milliseconds from integer nanoseconds
+       ftime_time.millitm   =  clock_gettime_time.tv_nsec / ((long)1000000);
+       //       printf("sec=%ld ns=%9ld ftime_time.millitm=%3d\n",clock_gettime_time.tv_sec,clock_gettime_time.tv_nsec,ftime_time.millitm);
+	      
+       ftime_time.timezone  =  0;
+       ftime_time.dstflag   =  0;       
+       
      }
 
    // ------------------------------------------------------
@@ -487,6 +551,7 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
    // convert integer secs to a ymdhms structure with gmtime()
    // 2008-Aug-13 mvj Fixed thread-unsafe use of gmtime with gmtime_r
    gmtime_r(&ftime_time.time, &gmtime_time);
+
    // ------------------------------------------------------
 
    // assign results to data structures
@@ -498,13 +563,28 @@ rov_time_struct_t rov_get_time_struct(int time_mode)
    t.min          = gmtime_time.tm_min;
    t.sec_int      = gmtime_time.tm_sec;
    t.msec_int     = ftime_time.millitm;
-   t.sec_double   = gmtime_time.tm_sec + (((double)ftime_time.millitm) / 1000.0);
+   
+   if ((time_mode == ROV_TIME_MODE_RENAV) || (time_mode == ROV_TIME_MODE_FASTTIME))
+     // 2018-07-18 LLW old code computes ms resolution fractional seconds     
+     {
+       t.sec_double   = gmtime_time.tm_sec + (((double)ftime_time.millitm) / 1000.0);
+       t.sec_today    = t.sec_double +
+	 (60.0 * t.min) +
+	 (3600.0* t.hour);
+       t.sec_rov_time = ftime_time.time +  (((double)ftime_time.millitm) / 1000.0);
+     }
+   else 
+     // 2018-07-18 LLW new code computes ns resolution fractional seconds
+     {
+       t.clock_gettime_sec_int   = clock_gettime_time.tv_sec;
+       t.clock_gettime_nsec_int	 = clock_gettime_time.tv_nsec;
 
-   t.sec_today    = t.sec_double +
-                    (60.0 * t.min) +
-                    (3600.0* t.hour);
-
-   t.sec_rov_time = ftime_time.time +  (((double)ftime_time.millitm) / 1000.0);
+       t.sec_double   = gmtime_time.tm_sec + (clock_gettime_time.tv_nsec * 1e-9); 
+       t.sec_today    = t.sec_double +
+	 (60.0 * t.min) +
+	 (3600.0* t.hour);
+       t.sec_rov_time =  clock_gettime_time.tv_sec + (clock_gettime_time.tv_nsec * 1e-9);
+     }
 
    return t;
 
