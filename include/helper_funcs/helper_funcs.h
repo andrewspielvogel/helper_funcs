@@ -201,7 +201,7 @@ inline Eigen::Matrix3d stringToDiag(std::string str)
 {
   Eigen::Matrix3d diag;
   Eigen::Vector3d vec;
-  sscanf(str.c_str(),"%lf,%lf,%lf",&vec(0),&vec(1),&vec(2));
+  sscanf(str.c_str(),"%*[[]%lf,%lf,%lf%*[]]",&vec(0),&vec(1),&vec(2));
 
   diag << vec(0),0,0,0,vec(1),0,0,0,vec(2);
 
