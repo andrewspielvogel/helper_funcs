@@ -19,15 +19,17 @@ catkin_package(
   )
 
 
-# include boost
-find_package(Boost REQUIRED)
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
+find_package(cmake_modules REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+
+include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 
 #add_definitions("-std=c++0x -Wall -Werror")
 add_definitions("-std=c++0x -Wall")
 
-add_library(${PROJECT_NAME} src/log.cpp src/time_util.cpp src/fasttime.cpp)
+add_library(${PROJECT_NAME} src/log.cpp src/time_util.cpp src/fasttime.cpp src/gyro_data.cpp)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}

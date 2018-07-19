@@ -210,4 +210,58 @@ inline Eigen::Matrix3d stringToDiag(std::string str)
 }
 
 
+
+/**
+ *
+ * @brief IMU packet
+ *
+ */
+struct ImuPacket
+{
+
+ public:
+
+  Eigen::Vector3d ang; /**< Angular-rate measurement. */
+  Eigen::Vector3d acc; /**< Linear-acceleration measurement. */
+  Eigen::Vector3d mag; /**< Magnetometer measurement. */
+
+  int seq_num; /**< Measurement sequence number. */
+
+  double t; /**< Measurement timestamp. */
+
+  float fluid_pressure; /**< Fluid Pressure. */
+  double dt;
+
+};
+
+
+/**
+ *
+ * @brief Struct for storing parameters for attitude post processing.
+ * 
+ */
+struct config_params {
+  
+  int hz;
+  float lat;
+  std::string o_file;
+  std::string i_file;
+  std::string last_mod;
+  Eigen::Matrix3d K_acc;
+  Eigen::Matrix3d K_mag;
+  Eigen::Matrix3d K_ang_bias;
+  Eigen::Matrix3d K_acc_bias;
+  Eigen::Matrix3d K_mag_bias;
+  Eigen::Matrix3d K_g;
+  Eigen::Matrix3d K_north;
+  Eigen::Matrix3d R0;
+  Eigen::Matrix3d R_align;
+
+  Eigen::VectorXd k;
+
+
+  std::string frameId;
+  
+};
+
 #endif
