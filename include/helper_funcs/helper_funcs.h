@@ -219,8 +219,6 @@ inline Eigen::Matrix3d stringToDiag(std::string str)
 struct ImuPacket
 {
 
- public:
-
   Eigen::Vector3d ang; /**< Angular-rate measurement. */
   Eigen::Vector3d acc; /**< Linear-acceleration measurement. */
   Eigen::Vector3d mag; /**< Magnetometer measurement. */
