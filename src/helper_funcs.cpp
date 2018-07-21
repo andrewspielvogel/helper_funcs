@@ -12,6 +12,7 @@
 #include <Eigen/Core>
 #include <helper_funcs/helper_funcs.h>
 #include <unsupported/Eigen/MatrixFunctions>
+#include <iostream>
 
 
 
@@ -302,7 +303,7 @@ config_params load_params(char* config_file)
       sscanf(data,"[%lf,%lf,%lf]",&rpy_align(0),&rpy_align(1),&rpy_align(2));
       params.R_align = rpy2rot(rpy_align);
     }
-    else if((std::string(field))=="rpy_r0")
+    else if((std::string(field))=="rpy_ro")
     {
       Eigen::Vector3d rpy_r0;
       sscanf(data,"[%lf,%lf,%lf]",&rpy_r0(0),&rpy_r0(1),&rpy_r0(2));
@@ -310,15 +311,11 @@ config_params load_params(char* config_file)
     }
     else if((std::string(field))=="k_north")
     {
-      Eigen::Vector3d k_north;
-      sscanf(data,"[%lf,%lf,%lf]",&k_north(0),&k_north(1),&k_north(2));
-      params.K_north = rpy2rot(k_north);
+      params.K_north = stringToDiag(data);
     }
     else if((std::string(field))=="k_g")
     {
-      Eigen::Vector3d k_g;
-      sscanf(data,"[%lf,%lf,%lf]",&k_g(0),&k_g(1),&k_g(2));
-      params.K_north = rpy2rot(k_g);
+      params.K_g = stringToDiag(data);
     }
     else if ((std::string(field))=="last_mod")
     {
@@ -328,6 +325,24 @@ config_params load_params(char* config_file)
       params.last_mod = std::string(str);
       params.last_mod.erase(remove(params.last_mod.begin(),params.last_mod.end(), '\"' ),params.last_mod.end());
 	
+    }
+    else if((std::string(field))=="acc_bias")
+    {
+      Eigen::Vector3d vec;
+      sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
+      params.acc_bias = vec;
+    }
+    else if((std::string(field))=="ang_bias")
+    {
+      Eigen::Vector3d vec;
+      sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
+      params.ang_bias = vec;
+    }
+    else if((std::string(field))=="mag_bias")
+    {
+      Eigen::Vector3d vec;
+      sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
+      params.mag_bias = vec;
     }
     
   }
@@ -364,4 +379,8 @@ void print_loaded_params(config_params params)
   printf("     k_E_n: [%f,%f,%f] (diag)\n",params.K_E_n(0,0),params.K_E_n(1,1),params.K_E_n(2,2));
   printf("       k_g: [%f,%f,%f] (diag)\n",params.K_g(0,0),params.K_g(1,1),params.K_g(2,2));
   printf("   k_north: [%f,%f,%f] (diag)\n",params.K_north(0,0),params.K_north(1,1),params.K_north(2,2));
+  printf("  acc_bias: [%f,%f,%f] (diag)\n",params.acc_bias(0),params.acc_bias(1),params.acc_bias(2));
+  printf("  ang_bias: [%f,%f,%f] (diag)\n",params.ang_bias(0),params.ang_bias(1),params.ang_bias(2));
+  printf("  mag_bias: [%f,%f,%f] (diag)\n",params.mag_bias(0),params.mag_bias(1),params.mag_bias(2));
+
 }
