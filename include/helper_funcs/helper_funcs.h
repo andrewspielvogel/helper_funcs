@@ -97,6 +97,7 @@ extern Eigen::Matrix3d get_R_sn(float lat, float t);
  */
 extern Eigen::Matrix3d stringToDiag(std::string str);
 
+
 /**
  *
  * @brief IMU packet
@@ -127,25 +128,54 @@ struct ImuPacket
 struct config_params {
 
   int hz;
+  int rate;
+  int baud;
+  
   float lat;
+  
   std::string o_file;
   std::string i_file;
   std::string last_mod;
+  std::string port;
+  std::string log_location;
+  
   Eigen::Matrix3d K_acc;
   Eigen::Matrix3d K_mag;
   Eigen::Matrix3d K_ang_bias;
   Eigen::Matrix3d K_acc_bias;
   Eigen::Matrix3d K_mag_bias;
+  Eigen::Matrix3d K_E_n;
   Eigen::Matrix3d K_g;
   Eigen::Matrix3d K_north;
   Eigen::Matrix3d R0;
   Eigen::Matrix3d R_align;
 
-  Eigen::VectorXd k;
-
-
+  Eigen::Vector3d ang_bias;
+  Eigen::Vector3d acc_bias;
+  Eigen::Vector3d mag_bias;
+  
   std::string frameId;
   
 };
 
+
+/**
+ *
+ * @brief Load params from config_file.
+ *
+ * @param Config file to parse.
+ *
+ */
+extern config_params load_params(char* config_file);
+
+/**
+ *
+ * @brief Function to print loaded parameters.
+ *
+ * @param Parameter struct.
+ *
+ */
+extern void print_loaded_params(config_params params);
+
+  
 #endif
