@@ -56,6 +56,7 @@ static logging_t log[LOG_MAX_NUM_LOG_FILES+1] = {{1, (char *) LOG_FID_KVH_SUFFIX
 						 {1, (char *) LOG_FID_PHINS_SUFFIX},
 						 {1, (char *) LOG_FID_KVH_BINARY_SUFFIX},
 						 {1, (char *) LOG_FID_MST_FILT_SUFFIX},
+						 {1, (char *) LOG_FID_PHINS_BINARY_SUFFIX},
 						 {0, NULL}
 };
 
@@ -77,6 +78,7 @@ static char * cfg_data_log_dir[LOG_MAX_NUM_LOG_FILES+1] = {(char *) "/log/kvh",
 							   (char *) "/log/phins",
 							   (char *) "/log/kvh",
 							   (char *) "/log/microstrain",
+							   (char *) "/log/phins",
 							   NULL};
 
 char * PNS_LOG_STRING[65535];
