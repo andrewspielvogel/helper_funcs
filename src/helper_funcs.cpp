@@ -243,6 +243,13 @@ config_params load_params(char* config_file)
       sscanf(data,"%d",&params.hz);
 
     }
+    else if((std::string(field))=="lat")
+    {
+
+      sscanf(data,"%f",&params.lat);
+      params.lat = params.lat*M_PI/180.0;
+
+    }
     else if((std::string(field))=="o_file")
     {
 
@@ -367,6 +374,7 @@ void print_loaded_params(config_params params)
   printf("***********************************\n");
   printf("  last_mod: %s\n",params.last_mod.c_str());
   printf("        hz: %d (s^-1)\n",params.hz);
+  printf("       lat: %f (radians)\n",params.lat);
   printf("    o_file: %s\n",params.o_file.c_str());
   printf("    i_file: %s\n",params.i_file.c_str());
   printf("        r0: [%f,%f,%f] (rpy)\n",rot2rph(params.R0)(0),rot2rph(params.R0)(1),rot2rph(params.R0)(2));
