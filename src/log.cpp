@@ -196,6 +196,7 @@ static int log_open_log_file(int log_fid)
     24 April 2002 LLW modified to close out fid 2 at midnight
     09 JAN 2004 LLW Modified to use time_util.cpp
     02 JUN 2005 LLW  Added logging of all targets at top of new CSV file
+    2018-08-20 LLW Commented out static and added local var for "filename"
 
     ---------------------------------------------------------------------- */
 
@@ -212,7 +213,9 @@ static int log_open_log_file(int log_fid)
 
   // 09 JAN 2004 LLW Modified to use time_util.cpp
   rov_time_struct_t     now;
-  static char           filename[512];
+  // 2018-08-20 LLW Commented out static and added local var for "filename"
+  // static char           filename[512];
+  char           filename[1024];  
   int status = 0;
 
   //  if we are not logging, place a notice in the filename string
