@@ -374,21 +374,21 @@ void print_loaded_params(config_params params)
   printf("***********************************\n");
   printf("  last_mod: %s\n",params.last_mod.c_str());
   printf("        hz: %d (s^-1)\n",params.hz);
-  printf("       lat: %f (radians)\n",params.lat);
+  printf("       lat: %+18.12f (deg)   %+18.12f (rad)\n",(180.0/M_PI)*params.lat,params.lat);
   printf("    o_file: %s\n",params.o_file.c_str());
   printf("    i_file: %s\n",params.i_file.c_str());
-  printf("        r0: [%f,%f,%f] (rpy)\n",rot2rph(params.R0)(0),rot2rph(params.R0)(1),rot2rph(params.R0)(2));
-  printf("   r_align: [%f,%f,%f] (rpy)\n",rot2rph(params.R_align)(0),rot2rph(params.R_align)(1),rot2rph(params.R_align)(2));
-  printf("     k_acc: [%f,%f,%f] (diag)\n",params.K_acc(0,0),params.K_acc(1,1),params.K_acc(2,2));
-  printf("     k_mag: [%f,%f,%f] (diag)\n",params.K_mag(0,0),params.K_mag(1,1),params.K_mag(2,2));
-  printf("k_ang_bias: [%f,%f,%f] (diag)\n",params.K_ang_bias(0,0),params.K_ang_bias(1,1),params.K_ang_bias(2,2));
-  printf("k_acc_bias: [%f,%f,%f] (diag)\n",params.K_acc_bias(0,0),params.K_acc_bias(1,1),params.K_acc_bias(2,2));
-  printf("k_mag_bias: [%f,%f,%f] (diag)\n",params.K_mag_bias(0,0),params.K_mag_bias(1,1),params.K_mag_bias(2,2));
-  printf("     k_E_n: [%f,%f,%f] (diag)\n",params.K_E_n(0,0),params.K_E_n(1,1),params.K_E_n(2,2));
-  printf("       k_g: [%f,%f,%f] (diag)\n",params.K_g(0,0),params.K_g(1,1),params.K_g(2,2));
-  printf("   k_north: [%f,%f,%f] (diag)\n",params.K_north(0,0),params.K_north(1,1),params.K_north(2,2));
-  printf("  acc_bias: [%f,%f,%f] (diag)\n",params.acc_bias(0),params.acc_bias(1),params.acc_bias(2));
-  printf("  ang_bias: [%f,%f,%f] (diag)\n",params.ang_bias(0),params.ang_bias(1),params.ang_bias(2));
-  printf("  mag_bias: [%f,%f,%f] (diag)\n",params.mag_bias(0),params.mag_bias(1),params.mag_bias(2));
+  printf("        r0: [%+18.12f,%+18.12f,%+18.12f] (rpy)\n",rot2rph(params.R0)(0),rot2rph(params.R0)(1),rot2rph(params.R0)(2));
+  printf("   r_align: [%+18.12f,%+18.12f,%+18.12f] (rpy)\n",rot2rph(params.R_align)(0),rot2rph(params.R_align)(1),rot2rph(params.R_align)(2));
+  printf("     k_acc: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_acc(0,0),params.K_acc(1,1),params.K_acc(2,2));
+  printf("     k_mag: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_mag(0,0),params.K_mag(1,1),params.K_mag(2,2));
+  printf("k_ang_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_ang_bias(0,0),params.K_ang_bias(1,1),params.K_ang_bias(2,2));
+  printf("k_acc_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_acc_bias(0,0),params.K_acc_bias(1,1),params.K_acc_bias(2,2));
+  printf("k_mag_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_mag_bias(0,0),params.K_mag_bias(1,1),params.K_mag_bias(2,2));
+  printf("     k_E_n: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_E_n(0,0),params.K_E_n(1,1),params.K_E_n(2,2));
+  printf("       k_g: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_g(0,0),params.K_g(1,1),params.K_g(2,2));
+  printf("   k_north: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_north(0,0),params.K_north(1,1),params.K_north(2,2));
+  printf("  acc_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.acc_bias(0),params.acc_bias(1),params.acc_bias(2));
+  printf("  ang_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.ang_bias(0),params.ang_bias(1),params.ang_bias(2));
+  printf("  mag_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.mag_bias(0),params.mag_bias(1),params.mag_bias(2));
 
 }
