@@ -223,6 +223,13 @@ config_params load_params(char* config_file)
   std::ifstream infile(config_file);
   std::string line;
 
+  // 2018-10-04 LLW added optional parameters to set ICs for acc_hat and w_E_north
+  // set these to sentinel values in case the user does not provide these parameters
+  // on the command line
+  Eigen::Vector3d sentinel(-100.0,-100.0,-100.0);
+  params.w_E_north = sentinel;
+  params.acc_hat   = sentinel;
+  
   /**********************************
    *  LOAD IN LINE FROM CONFIG FILE
    **********************************/
@@ -351,8 +358,23 @@ config_params load_params(char* config_file)
       sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
       params.mag_bias = vec;
     }
-    
+
+    // 2018-10-04 LLW added optional parameters to set ICs for acc_hat and w_E_north
+    else if((std::string(field))=="acc_hat")
+    {
+      Eigen::Vector3d vec;
+      sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
+      params.acc_hat = vec;
+    }    
+    // 2018-10-04 LLW added optional parameters to set ICs for acc_hat and w_E_north    
+    else if((std::string(field))=="w_E_north")
+    {
+      Eigen::Vector3d vec;
+      sscanf(data,"[%lf,%lf,%lf]",&vec(0),&vec(1),&vec(2));
+      params.w_E_north = vec;
+    }    
   }
+
 
   return params;
 
@@ -387,8 +409,12 @@ void print_loaded_params(config_params params)
   printf("     k_E_n: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_E_n(0,0),params.K_E_n(1,1),params.K_E_n(2,2));
   printf("       k_g: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_g(0,0),params.K_g(1,1),params.K_g(2,2));
   printf("   k_north: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.K_north(0,0),params.K_north(1,1),params.K_north(2,2));
-  printf("  acc_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.acc_bias(0),params.acc_bias(1),params.acc_bias(2));
-  printf("  ang_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.ang_bias(0),params.ang_bias(1),params.ang_bias(2));
-  printf("  mag_bias: [%+18.12f,%+18.12f,%+18.12f] (diag)\n",params.mag_bias(0),params.mag_bias(1),params.mag_bias(2));
+  printf("  acc_bias: [%+18.12f,%+18.12f,%+18.12f] (vec)\n",params.acc_bias(0),params.acc_bias(1),params.acc_bias(2));
+  printf("  ang_bias: [%+18.12f,%+18.12f,%+18.12f] (vec)\n",params.ang_bias(0),params.ang_bias(1),params.ang_bias(2));
+  printf("  mag_bias: [%+18.12f,%+18.12f,%+18.12f] (vec)\n",params.mag_bias(0),params.mag_bias(1),params.mag_bias(2));
+
+  // 2018-10-04 LLW added optional parameters to set ICs for acc_hat and w_E_north
+  printf(" w_E_north: [%+18.12f,%+18.12f,%+18.12f] (vec)\n",params.w_E_north(0),params.w_E_north(1),params.w_E_north(2));
+  printf("   acc_hat: [%+18.12f,%+18.12f,%+18.12f] (vec)\n",params.acc_hat(0),params.acc_hat(1),params.acc_hat(2));  
 
 }

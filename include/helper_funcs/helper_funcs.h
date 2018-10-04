@@ -153,6 +153,11 @@ struct config_params {
   Eigen::Vector3d ang_bias;
   Eigen::Vector3d acc_bias;
   Eigen::Vector3d mag_bias;
+
+  
+  // 2018-10-04 LLW added optional parameters to set ICs for acc_hat and w_E_north  
+  Eigen::Vector3d acc_hat;
+  Eigen::Vector3d w_E_north;  
   
   std::string frameId;
   
